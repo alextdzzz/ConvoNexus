@@ -273,7 +273,6 @@ Example (based on actual content):
             const response = await this.openai.chat.completions.create({
                 model: "o4-mini",
                 messages: [{ role: "user", content: prompt }],
-                temperature: 0.1,
                 max_completion_tokens: 1200
             });
 
