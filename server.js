@@ -223,38 +223,59 @@ class MeetingNexusServer {
 
         console.log(`[Server] Sending to OpenAI transcript:`, combinedText);
 
-        const prompt = `Extract knowledge graph elements from this meeting transcript:
+        const prompt = `You are analyzing a meeting transcript to extract HIGH-LEVEL strategic insights for executive visualization.
+
+ONLY extract relationships that represent:
+
+**STRATEGIC LEVEL** (Always include):
+- Major decisions and their business rationale
+- Strategic initiatives, programs, and projects
+- Significant risk factors, blockers, and concerns
+- Resource allocation and budget discussions
+- Timeline-critical milestones and deliverables
+- Key stakeholder roles and executive ownership
+
+**TACTICAL LEVEL** (Include only if high-impact):
+- Action items with clear owners AND deadlines
+- Concrete deliverables with business impact
+- Specific commitments mentioned multiple times
+
+**IGNORE** (Do not extract):
+- Casual conversation and procedural talk
+- Minor process discussions without decisions
+- Individual task-level details and technical specifics
+- Questions without clear resolutions
+- Vague or incomplete statements
+
+Meeting Transcript:
 ${combinedText}
 
-Focus on:
-- People mentioned (participants, clients, stakeholders)
-- Topics and subjects discussed
-- Decisions made
-- Action items and assignments
-- Problems or concerns raised
-- Deadlines and dates
-- Projects or initiatives
+Focus on THEMES and PATTERNS rather than individual mentions.
+Create maximum 8 relationships per analysis - prioritize strategic value.
+Group related tactical items under strategic themes where possible.
 
-Return ONLY a JSON array of relationships in this format:
+Return ONLY a JSON array in this format:
 [
   ["Entity1", "relationship", "Entity2"],
   ["Entity1", "#color"]
 ]
 
-Use these colors:
-- People: #4CAF50 (green)
-- Topics: #2196F3 (blue) 
-- Decisions: #FF9800 (orange)
-- Action Items: #F44336 (red)
-- Deadlines: #9C27B0 (purple)
+Use these strategic colors:
+- Strategic Decisions: #FF6B35 (orange-red)
+- Business Initiatives: #2E86AB (blue)
+- Risk/Blockers: #F18F01 (amber)
+- Key People: #4CAF50 (green)
+- Critical Deadlines: #9C27B0 (purple)
+- Action Items: #E74C3C (red)
 
-Example:
+Example strategic extraction:
 [
-  ["Q3 Budget", "concerns", "Timeline"],
-  ["John", "assigned", "Budget Review"],
-  ["Q3 Budget", "#2196F3"],
-  ["John", "#4CAF50"],
-  ["Budget Review", "#F44336"]
+  ["Q4 Strategy", "blocked_by", "Budget Constraints"],
+  ["Sarah", "owns", "Digital Transformation"],
+  ["Q4 Strategy", "#2E86AB"],
+  ["Budget Constraints", "#F18F01"],
+  ["Sarah", "#4CAF50"],
+  ["Digital Transformation", "#2E86AB"]
 ]`;
 
         try {
