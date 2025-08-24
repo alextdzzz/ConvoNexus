@@ -23,6 +23,7 @@ class MeetingAudioService:
         self.is_recording = False
         self.speaker_count = 1
         self.current_speaker = f"Speaker_{self.speaker_count}"
+        self.loop = None
         
         # Track sentences and realtime text
         self.completed_sentences = []
@@ -79,8 +80,12 @@ class MeetingAudioService:
         text = self.preprocess_text(text)
         self.current_text = text
         
-        # Send partial transcript
-        asyncio.create_task(self.send_transcript(text, is_final=False, confidence=0.7))
+        # Send partial transcript (thread-safe)
+        if self.loop and not self.loop.is_closed():
+            asyncio.run_coroutine_threadsafe(
+                self.send_transcript(text, is_final=False, confidence=0.7),
+                self.loop
+            )
 
     def on_final_text(self, text):
         """Handle completed sentence transcription"""
@@ -99,8 +104,12 @@ class MeetingAudioService:
         self.completed_sentences.append(text)
         print(f"[AudioService] Final: {self.current_speaker}: {text}")
         
-        # Send final transcript
-        asyncio.create_task(self.send_transcript(text, is_final=True, confidence=0.95))
+        # Send final transcript (thread-safe)
+        if self.loop and not self.loop.is_closed():
+            asyncio.run_coroutine_threadsafe(
+                self.send_transcript(text, is_final=True, confidence=0.95),
+                self.loop
+            )
         
         # Reset current text
         self.current_text = ""
@@ -193,12 +202,13 @@ class MeetingAudioService:
         print("  'n' - Switch to next speaker")
         print()
         
-        loop = asyncio.get_event_loop()
+        # Store loop reference for thread-safe async calls
+        self.loop = asyncio.get_event_loop()
         
         while True:
             try:
                 # Read user input in a non-blocking way
-                command = await loop.run_in_executor(None, input, "[AudioService] Command: ")
+                command = await self.loop.run_in_executor(None, input, "[AudioService] Command: ")
                 command = command.strip().lower()
                 
                 if command == 's':

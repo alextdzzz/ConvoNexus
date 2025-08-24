@@ -38,9 +38,6 @@ class MeetingNexusServer {
         this.app.use(express.json());
         this.app.use(express.static('public'));
         
-        // Serve GraphGPT frontend
-        this.app.use(express.static(path.join(__dirname, 'GraphGPT/build')));
-        
         // API endpoints
         this.app.get('/api/meeting/status', (req, res) => {
             res.json({
@@ -56,9 +53,23 @@ class MeetingNexusServer {
             res.json({ success: true });
         });
         
-        // Serve main app
-        this.app.get('*', (req, res) => {
-            res.sendFile(path.join(__dirname, 'public/index.html'));
+        // Health check endpoint
+        this.app.get('/health', (req, res) => {
+            res.json({ status: 'ok', timestamp: new Date().toISOString() });
+        });
+        
+        // Serve main app (catch-all route)
+        this.app.get('/', (req, res) => {
+            res.sendFile(path.join(__dirname, 'public', 'index.html'));
+        });
+        
+        // Handle 404s gracefully
+        this.app.use((req, res) => {
+            if (req.path.startsWith('/api/')) {
+                res.status(404).json({ error: 'API endpoint not found' });
+            } else {
+                res.sendFile(path.join(__dirname, 'public', 'index.html'));
+            }
         });
         
         this.server = this.app.listen(this.port, () => {

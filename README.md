@@ -37,27 +37,30 @@ cp .env.example .env
 
 ### 3. Start the System
 
-**Terminal 1: Start the WebSocket Server**
+**Single Command - All Components:**
 ```bash
-node server.js
+# Windows:
+start.bat
+
+# Linux/Mac:
+./start.sh
+
+# Or directly:
+node start.js
 ```
 
-**Terminal 2: Start the Audio Service**
-```bash
-python audio_service.py
-```
-
-**Terminal 3: Open the Web Interface**
-```bash
-# Open http://localhost:3001 in your browser
-# Or if you have a local server:
-# python -m http.server 8000 -d public
-```
+The launcher will:
+- ✅ Start WebSocket server
+- ✅ Start audio service  
+- ✅ Auto-start recording
+- ✅ Open browser automatically
+- ✅ Show live status from all components
 
 ### 4. Begin Recording
-1. Click **"Start Meeting"** in the web interface
-2. In the audio service terminal, type **`s`** to start recording
-3. Start speaking - watch the knowledge graph build in real-time!
+1. Wait for "🚀 MeetingNexus is running!" message
+2. Click **"Start Meeting"** in the auto-opened browser
+3. Start speaking - the graph builds automatically!
+4. Press **`n`** to switch speakers, **Ctrl+C** to stop
 
 ---
 
@@ -233,8 +236,8 @@ ConvoNexus/
 ├── public/             # Web interface
 │   ├── index.html     # Main UI
 │   └── app.js         # Frontend JavaScript
-├── GraphGPT/          # Original GraphGPT (reference)
-└── RealtimeSTT/       # Original RealtimeSTT (reference)
+├── GraphGPT/              # Original GraphGPT (reference)
+└── RealtimeSTT_source/   # Original RealtimeSTT source (reference)
 ```
 
 ---
