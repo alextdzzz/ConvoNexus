@@ -65,7 +65,10 @@ class MeetingNexusApp {
             interaction: {
                 dragNodes: true,
                 dragView: true,
-                zoomView: true
+                zoomView: true,
+                zoomSpeed: 1,
+                multiselect: false,
+                selectConnectedEdges: false
             },
             layout: {
                 improvedLayout: false
@@ -106,6 +109,27 @@ class MeetingNexusApp {
         
         document.getElementById('testGraph').addEventListener('click', () => {
             this.testGraphWithExportedData();
+        });
+        
+        // Graph zoom controls
+        document.getElementById('zoomIn').addEventListener('click', () => {
+            if (this.graph) {
+                const scale = this.graph.getScale();
+                this.graph.moveTo({ scale: scale * 1.2 });
+            }
+        });
+        
+        document.getElementById('zoomOut').addEventListener('click', () => {
+            if (this.graph) {
+                const scale = this.graph.getScale();
+                this.graph.moveTo({ scale: scale * 0.8 });
+            }
+        });
+        
+        document.getElementById('fitGraph').addEventListener('click', () => {
+            if (this.graph) {
+                this.graph.fit({ animation: true });
+            }
         });
         
         console.log('[MeetingNexus] Event listeners setup complete');
