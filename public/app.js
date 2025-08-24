@@ -24,6 +24,15 @@ class MeetingNexusApp {
     initializeGraph() {
         const container = document.getElementById('graph');
         
+        // Check if vis.js is loaded
+        if (typeof vis === 'undefined') {
+            console.error('[Frontend] vis.js library not loaded!');
+            this.showMessage('Error: Graph library not loaded', 'error');
+            return;
+        }
+        
+        console.log('[Frontend] vis.js library loaded successfully');
+        
         const options = {
             nodes: {
                 font: { size: 14, color: '#333' },
@@ -95,6 +104,10 @@ class MeetingNexusApp {
             this.exportGraph();
         });
         
+        document.getElementById('testGraph').addEventListener('click', () => {
+            this.testGraphWithExportedData();
+        });
+        
         console.log('[MeetingNexus] Event listeners setup complete');
     }
 
@@ -143,6 +156,8 @@ class MeetingNexusApp {
     }
 
     handleServerMessage(data) {
+        console.log('[Frontend] Received server message:', data.type, data);
+        
         switch (data.type) {
             case 'meeting_state':
                 this.handleMeetingState(data.data);
@@ -151,7 +166,12 @@ class MeetingNexusApp {
                 this.handleTranscriptUpdate(data.data);
                 break;
             case 'graph_update':
+                console.log('[Frontend] Processing graph update with', data.data.length, 'items');
                 this.handleGraphUpdate(data.data);
+                break;
+            case 'graph_state_load':
+                console.log('[Frontend] Loading complete graph state');
+                this.handleGraphStateLoad(data.data);
                 break;
             case 'meeting_started':
                 this.isMeetingActive = true;
@@ -216,18 +236,44 @@ class MeetingNexusApp {
     }
 
     handleGraphUpdate(updates) {
-        console.log('[Graph] Processing updates:', updates);
+        console.log('[Frontend] Graph update received:', updates);
+        if (!updates || !Array.isArray(updates)) {
+            console.error('[Frontend] Invalid graph update data:', updates);
+            return;
+        }
+        
         this.updateGraph(updates);
         this.showMessage(`Graph updated with ${updates.length} new relationships`, 'success');
+        console.log('[Frontend] Graph now has', this.graphData.nodes.length, 'nodes and', this.graphData.edges.length, 'edges');
+    }
+
+    handleGraphStateLoad(graphState) {
+        console.log('[Frontend] Loading complete graph state:', graphState);
+        if (!graphState || (!graphState.nodes && !graphState.edges)) {
+            console.error('[Frontend] Invalid graph state data:', graphState);
+            return;
+        }
+        
+        this.loadGraphData(graphState);
+        this.showMessage(`Graph loaded with ${graphState.nodes?.length || 0} nodes`, 'success');
+        console.log('[Frontend] Graph state loaded successfully');
     }
 
     updateGraph(updates) {
-        if (!updates || updates.length === 0) return;
+        if (!updates || updates.length === 0) {
+            console.log('[Frontend] No updates to process');
+            return;
+        }
 
-        updates.forEach(update => {
+        console.log('[Frontend] Processing', updates.length, 'graph updates');
+
+        updates.forEach((update, index) => {
+            console.log(`[Frontend] Processing update ${index}:`, update);
+            
             if (update.length === 3) {
                 // Add relationship: [entity1, relation, entity2]
                 const [entity1, relation, entity2] = update;
+                console.log(`[Frontend] Adding relationship: ${entity1} → ${relation} → ${entity2}`);
 
                 // Add nodes if they don't exist
                 if (!this.graphData.nodes.get(entity1)) {
@@ -237,6 +283,7 @@ class MeetingNexusApp {
                         color: '#ffffff',
                         title: `Entity: ${entity1}`
                     });
+                    console.log(`[Frontend] Added node: ${entity1}`);
                 }
                 if (!this.graphData.nodes.get(entity2)) {
                     this.graphData.nodes.add({ 
@@ -245,6 +292,7 @@ class MeetingNexusApp {
                         color: '#ffffff',
                         title: `Entity: ${entity2}`
                     });
+                    console.log(`[Frontend] Added node: ${entity2}`);
                 }
 
                 // Add or update edge
@@ -253,6 +301,7 @@ class MeetingNexusApp {
                 
                 if (existingEdge) {
                     this.graphData.edges.update({ id: edgeId, label: relation });
+                    console.log(`[Frontend] Updated edge: ${edgeId}`);
                 } else {
                     this.graphData.edges.add({ 
                         id: edgeId,
@@ -261,14 +310,17 @@ class MeetingNexusApp {
                         label: relation,
                         title: `${entity1} → ${relation} → ${entity2}`
                     });
+                    console.log(`[Frontend] Added edge: ${edgeId}`);
                 }
 
             } else if (update.length === 2 && update[1].startsWith('#')) {
                 // Set node color: [entity, color]
                 const [entity, color] = update;
+                console.log(`[Frontend] Setting color for ${entity}: ${color}`);
                 
                 if (this.graphData.nodes.get(entity)) {
                     this.graphData.nodes.update({ id: entity, color: color });
+                    console.log(`[Frontend] Updated node color: ${entity}`);
                 } else {
                     this.graphData.nodes.add({ 
                         id: entity, 
@@ -276,7 +328,10 @@ class MeetingNexusApp {
                         color: color,
                         title: `Entity: ${entity}`
                     });
+                    console.log(`[Frontend] Added colored node: ${entity}`);
                 }
+            } else {
+                console.warn('[Frontend] Unknown update format:', update);
             }
         });
 
@@ -286,18 +341,22 @@ class MeetingNexusApp {
         // Fit the graph to show all nodes
         setTimeout(() => {
             if (this.graph && this.graphData.nodes.length > 0) {
+                console.log('[Frontend] Fitting graph to show all nodes');
                 this.graph.fit();
             }
         }, 500);
     }
 
     loadGraphData(graphState) {
+        console.log('[Frontend] Loading graph data:', graphState);
+        
         // Clear existing data
         this.graphData.nodes.clear();
         this.graphData.edges.clear();
 
         // Add nodes
-        if (graphState.nodes) {
+        if (graphState.nodes && Array.isArray(graphState.nodes)) {
+            console.log('[Frontend] Adding', graphState.nodes.length, 'nodes');
             graphState.nodes.forEach(node => {
                 this.graphData.nodes.add({
                     ...node,
@@ -307,17 +366,27 @@ class MeetingNexusApp {
         }
 
         // Add edges  
-        if (graphState.edges) {
+        if (graphState.edges && Array.isArray(graphState.edges)) {
+            console.log('[Frontend] Adding', graphState.edges.length, 'edges');
             graphState.edges.forEach(edge => {
                 this.graphData.edges.add({
                     ...edge,
-                    id: `${edge.from}-${edge.to}`,
+                    id: edge.id || `${edge.from}-${edge.to}`,
                     title: `${edge.from} → ${edge.label} → ${edge.to}`
                 });
             });
         }
 
-        console.log(`[Graph] Loaded ${graphState.nodes?.length || 0} nodes and ${graphState.edges?.length || 0} edges`);
+        console.log(`[Frontend] Loaded ${graphState.nodes?.length || 0} nodes and ${graphState.edges?.length || 0} edges`);
+        
+        // Update UI and fit graph
+        this.updateUI();
+        setTimeout(() => {
+            if (this.graph && this.graphData.nodes.length > 0) {
+                console.log('[Frontend] Fitting graph to show loaded data');
+                this.graph.fit();
+            }
+        }, 500);
     }
 
     updateTranscriptDisplay() {
@@ -473,6 +542,42 @@ class MeetingNexusApp {
         }, 5000);
         
         console.log(`[Message] ${type}: ${text}`);
+    }
+
+    // Test function to manually load graph data
+    testGraphWithExportedData() {
+        console.log('[Frontend] Testing graph with exported data...');
+        
+        // Test data from your export
+        const testNodes = [
+            { id: "Speaker_1", label: "Speaker_1", color: "#4CAF50" },
+            { id: "discussion", label: "discussion", color: "#2196F3" },
+            { id: "two things", label: "two things", color: "#2196F3" }
+        ];
+        
+        const testEdges = [
+            { id: "Speaker_1-two things", from: "Speaker_1", to: "two things", label: "discussed" }
+        ];
+        
+        // Clear and add test data
+        this.graphData.nodes.clear();
+        this.graphData.edges.clear();
+        
+        this.graphData.nodes.add(testNodes);
+        this.graphData.edges.add(testEdges);
+        
+        console.log('[Frontend] Added test nodes:', testNodes.length);
+        console.log('[Frontend] Added test edges:', testEdges.length);
+        
+        // Fit graph
+        setTimeout(() => {
+            if (this.graph) {
+                this.graph.fit();
+                this.showMessage('Test graph loaded successfully!', 'success');
+            }
+        }, 500);
+        
+        this.updateUI();
     }
 }
 

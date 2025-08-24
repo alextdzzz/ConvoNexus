@@ -95,6 +95,15 @@ class MeetingNexusServer {
                 }
             }));
             
+            // If there's already graph data, send it as a graph state load
+            if (this.meetingState.currentGraph.nodes.length > 0) {
+                console.log(`[Server] Sending existing graph to new client: ${this.meetingState.currentGraph.nodes.length} nodes`);
+                ws.send(JSON.stringify({
+                    type: 'graph_state_load',
+                    data: this.meetingState.currentGraph
+                }));
+            }
+            
             ws.on('message', async (message) => {
                 try {
                     const data = JSON.parse(message.toString());
@@ -141,6 +150,8 @@ class MeetingNexusServer {
     async handleTranscript(data) {
         const { speaker, text, is_final, confidence } = data;
         
+        console.log(`[Server] Received transcript: ${speaker} | Final: ${is_final} | Text: "${text.substring(0, 50)}..."`);
+        
         // Track participants
         this.meetingState.participants.add(speaker);
         
@@ -159,12 +170,16 @@ class MeetingNexusServer {
         // Process final transcripts for knowledge extraction
         if (is_final && text.trim() && !text.startsWith('[')) {
             this.meetingState.transcriptBuffer.push({ speaker, text, timestamp: Date.now() });
+            console.log(`[Server] Added to transcript buffer. Buffer size: ${this.meetingState.transcriptBuffer.length}`);
             
             // Process accumulated transcripts every 10 seconds or 3 sentences
             const now = Date.now();
+            const timeSinceLastProcess = now - this.meetingState.lastProcessTime;
             const shouldProcess = 
-                (now - this.meetingState.lastProcessTime > 10000) || 
+                (timeSinceLastProcess > 10000) || 
                 (this.meetingState.transcriptBuffer.length >= 3);
+                
+            console.log(`[Server] Should process? ${shouldProcess} (Time: ${timeSinceLastProcess}ms, Buffer: ${this.meetingState.transcriptBuffer.length})`);
                 
             if (shouldProcess) {
                 await this.processTranscriptBuffer();
@@ -182,22 +197,31 @@ class MeetingNexusServer {
         
         try {
             const knowledge = await this.extractMeetingKnowledge(transcripts);
+            console.log(`[Server] OpenAI returned ${knowledge ? knowledge.length : 0} knowledge items`);
+            
             if (knowledge && knowledge.length > 0) {
+                console.log(`[Server] Knowledge extracted:`, knowledge);
                 this.updateMeetingGraph(knowledge);
                 this.broadcastToClients({
                     type: 'graph_update',
                     data: knowledge
                 });
+                console.log(`[Server] Broadcasted graph update to ${this.wss.clients.size} clients`);
+            } else {
+                console.log(`[Server] No knowledge extracted from transcripts`);
             }
         } catch (error) {
             console.error('[Server] Error extracting knowledge:', error);
+            console.error('[Server] Error details:', error.message);
         }
     }
 
     async extractMeetingKnowledge(transcripts) {
         const combinedText = transcripts
             .map(t => `${t.speaker}: ${t.text}`)
-            .join('\\n');
+            .join('\n');
+
+        console.log(`[Server] Sending to OpenAI transcript:`, combinedText);
 
         const prompt = `Extract knowledge graph elements from this meeting transcript:
 ${combinedText}
@@ -234,6 +258,7 @@ Example:
 ]`;
 
         try {
+            console.log(`[Server] Calling OpenAI API...`);
             const response = await this.openai.chat.completions.create({
                 model: "gpt-3.5-turbo",
                 messages: [{ role: "user", content: prompt }],
@@ -247,12 +272,17 @@ Example:
             // Parse JSON response
             const jsonMatch = content.match(/\[[\s\S]*\]/);
             if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
+                const parsed = JSON.parse(jsonMatch[0]);
+                console.log('[Server] Parsed knowledge:', parsed);
+                return parsed;
+            } else {
+                console.log('[Server] No JSON array found in OpenAI response');
+                return [];
             }
             
-            return [];
         } catch (error) {
             console.error('[Server] OpenAI API error:', error);
+            console.error('[Server] API key valid?', !!process.env.OPENAI_API_KEY);
             throw error;
         }
     }

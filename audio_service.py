@@ -45,7 +45,10 @@ class MeetingAudioService:
     async def send_transcript(self, text, is_final=False, confidence=0.9):
         """Send transcript data to WebSocket server"""
         if not self.websocket:
-            return
+            print("[AudioService] No WebSocket connection, attempting to reconnect...")
+            await self.connect_websocket()
+            if not self.websocket:
+                return
             
         data = {
             "type": "transcript",
@@ -61,6 +64,11 @@ class MeetingAudioService:
             print(f"[AudioService] Sent: {self.current_speaker}: {text[:50]}{'...' if len(text) > 50 else ''}")
         except Exception as e:
             print(f"[AudioService] Error sending transcript: {e}")
+            # Try to reconnect on connection errors
+            if "1011" in str(e) or "timeout" in str(e) or "closed" in str(e):
+                print("[AudioService] WebSocket connection lost, attempting to reconnect...")
+                self.websocket = None
+                await self.connect_websocket()
 
     def preprocess_text(self, text):
         """Clean and preprocess transcript text"""
