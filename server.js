@@ -172,12 +172,12 @@ class MeetingNexusServer {
             this.meetingState.transcriptBuffer.push({ speaker, text, timestamp: Date.now() });
             console.log(`[Server] Added to transcript buffer. Buffer size: ${this.meetingState.transcriptBuffer.length}`);
             
-            // Process accumulated transcripts every 10 seconds or 3 sentences
+            // Process accumulated transcripts every 30 seconds or 8 sentences
             const now = Date.now();
             const timeSinceLastProcess = now - this.meetingState.lastProcessTime;
             const shouldProcess = 
-                (timeSinceLastProcess > 10000) || 
-                (this.meetingState.transcriptBuffer.length >= 3);
+                (timeSinceLastProcess > 30000) || 
+                (this.meetingState.transcriptBuffer.length >= 8);
                 
             console.log(`[Server] Should process? ${shouldProcess} (Time: ${timeSinceLastProcess}ms, Buffer: ${this.meetingState.transcriptBuffer.length})`);
                 
