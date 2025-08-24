@@ -274,7 +274,7 @@ Example (based on actual content):
                 model: "o4-mini",
                 messages: [{ role: "user", content: prompt }],
                 temperature: 0.1,
-                max_tokens: 1200
+                max_completion_tokens: 1200
             });
 
             const content = response.choices[0].message.content.trim();
