@@ -1,0 +1,6 @@
+[submodule "GraphGPT"]
+	path = GraphGPT
+	url = https://github.com/alextdzzz/GraphGPT.git
+[submodule "RealtimeSTT"]
+	path = RealtimeSTT
+	url = https://github.com/alextdzzz/RealtimeSTT.git
