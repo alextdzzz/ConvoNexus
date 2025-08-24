@@ -1,0 +1,43 @@
+## MeetingNexus Python Dependencies
+## For real-time speech-to-text processing
+
+# Core RealtimeSTT package with all features
+realtimestt[all]>=0.1.0
+
+# Audio processing dependencies
+PyAudio==0.2.14
+soundfile>=0.12.1
+
+# Speech recognition
+faster-whisper>=1.0.0
+torch>=2.0.0
+torchaudio>=2.0.0
+
+# Voice activity detection
+webrtcvad-wheels>=2.0.10
+silero-vad>=4.0.0
+
+# Wake word detection (optional)
+pvporcupine>=3.0.0
+openwakeword>=0.6.0
+
+# Networking for WebSocket communication
+websockets>=12.0
+websocket-client>=1.8.0
+
+# Utility libraries
+halo>=0.0.31
+scipy>=1.10.0
+numpy>=1.24.0
+
+# Audio format support
+librosa>=0.10.0
+pydub>=0.25.0
+
+# System utilities
+psutil>=5.9.0
+colorama>=0.4.6
+
+# Development and testing
+pytest>=7.0.0
+pytest-asyncio>=0.23.0
