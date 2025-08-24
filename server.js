@@ -223,36 +223,27 @@ class MeetingNexusServer {
 
         console.log(`[Server] Sending to OpenAI transcript:`, combinedText);
 
-        const prompt = `You are analyzing a meeting transcript to extract HIGH-LEVEL strategic insights for executive visualization.
-
-ONLY extract relationships that represent:
-
-**STRATEGIC LEVEL** (Always include):
-- Major decisions and their business rationale
-- Strategic initiatives, programs, and projects
-- Significant risk factors, blockers, and concerns
-- Resource allocation and budget discussions
-- Timeline-critical milestones and deliverables
-- Key stakeholder roles and executive ownership
-
-**TACTICAL LEVEL** (Include only if high-impact):
-- Action items with clear owners AND deadlines
-- Concrete deliverables with business impact
-- Specific commitments mentioned multiple times
-
-**IGNORE** (Do not extract):
-- Casual conversation and procedural talk
-- Minor process discussions without decisions
-- Individual task-level details and technical specifics
-- Questions without clear resolutions
-- Vague or incomplete statements
+        const prompt = `Extract the key THEMES and meaningful relationships from this meeting transcript.
 
 Meeting Transcript:
 ${combinedText}
 
-Focus on THEMES and PATTERNS rather than individual mentions.
-Create maximum 8 relationships per analysis - prioritize strategic value.
-Group related tactical items under strategic themes where possible.
+Focus on identifying:
+- **Major themes** that emerge from the discussion (not predefined categories)
+- **Key relationships** between people, topics, and concepts
+- **Important decisions** that were actually made
+- **Clear action items** with owners and deadlines
+- **Significant concerns** or blockers mentioned
+- **Timeline commitments** that were established
+
+**Extract naturally occurring themes - don't force content into artificial categories.**
+
+Guidelines:
+- Focus on what's actually discussed, not what should be discussed
+- Ignore casual conversation and minor procedural items
+- Group related concepts under broader themes when they naturally cluster
+- Only include action items that have clear owners
+- Extract only the most significant relationships - quality over quantity
 
 Return ONLY a JSON array in this format:
 [
@@ -260,22 +251,21 @@ Return ONLY a JSON array in this format:
   ["Entity1", "#color"]
 ]
 
-Use these strategic colors:
-- Strategic Decisions: #FF6B35 (orange-red)
-- Business Initiatives: #2E86AB (blue)
-- Risk/Blockers: #F18F01 (amber)
-- Key People: #4CAF50 (green)
-- Critical Deadlines: #9C27B0 (purple)
-- Action Items: #E74C3C (red)
+Color entities based on their natural role:
+- People: #4CAF50 (green)
+- Main topics/themes: #2196F3 (blue)
+- Decisions made: #FF9800 (orange)
+- Action items: #F44336 (red)
+- Concerns/blockers: #FFC107 (amber)
+- Deadlines: #9C27B0 (purple)
 
-Example strategic extraction:
+Example (based on actual content):
 [
-  ["Q4 Strategy", "blocked_by", "Budget Constraints"],
-  ["Sarah", "owns", "Digital Transformation"],
-  ["Q4 Strategy", "#2E86AB"],
-  ["Budget Constraints", "#F18F01"],
-  ["Sarah", "#4CAF50"],
-  ["Digital Transformation", "#2E86AB"]
+  ["Budget Review", "assigned_to", "John"],
+  ["Budget Review", "due_by", "Friday"],
+  ["Budget Review", "#F44336"],
+  ["John", "#4CAF50"],
+  ["Friday", "#9C27B0"]
 ]`;
 
         try {
