@@ -271,10 +271,10 @@ Example (based on actual content):
         try {
             console.log(`[Server] Calling OpenAI API...`);
             const response = await this.openai.chat.completions.create({
-                model: "gpt-3.5-turbo",
+                model: "o4-mini",
                 messages: [{ role: "user", content: prompt }],
-                temperature: 0.3,
-                max_tokens: 800
+                temperature: 0.1,
+                max_tokens: 1200
             });
 
             const content = response.choices[0].message.content.trim();
