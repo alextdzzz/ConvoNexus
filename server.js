@@ -223,8 +223,25 @@ class MeetingNexusServer {
 
         console.log(`[Server] Sending to OpenAI transcript:`, combinedText);
 
-        const prompt = `Extract the key THEMES and meaningful relationships from this meeting transcript.
+        // Add context from existing graph
+        const existingEntities = this.meetingState.currentGraph.nodes.map(n => n.id).slice(-10);
+        const recentRelationships = this.meetingState.currentGraph.edges
+            .slice(-5)
+            .map(e => `${e.from} → ${e.to}`);
+            
+        let contextSection = '';
+        if (existingEntities.length > 0) {
+            contextSection = `
+Current meeting context:
+- Existing entities: ${existingEntities.join(', ')}
+- Recent relationships: ${recentRelationships.join(', ')}
 
+When relevant, connect new concepts to existing entities above.
+`;
+        }
+
+        const prompt = `Extract the key THEMES and meaningful relationships from this meeting transcript.
+${contextSection}
 Meeting Transcript:
 ${combinedText}
 
