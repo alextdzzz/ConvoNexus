@@ -271,7 +271,7 @@ Example (based on actual content):
         try {
             console.log(`[Server] Calling OpenAI API...`);
             const response = await this.openai.chat.completions.create({
-                model: "o4-mini",
+                model: "gpt-4o-mini",
                 messages: [{ role: "user", content: prompt }],
                 max_completion_tokens: 1200
             });
