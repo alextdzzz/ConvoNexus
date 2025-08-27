@@ -1,38 +1,46 @@
-# MeetingNexus 🎯
+# ConvoNexus: Real-Time Meeting Mind Map Generator
 
-**Real-time meeting transcription with live knowledge graph visualization**
+Transform meeting conversations into interactive knowledge graphs in real-time using AI-powered speech recognition and visualization.
 
-Transform meeting conversations into interactive mind maps as they happen. Built by combining GraphGPT's knowledge extraction with RealtimeSTT's speech-to-text capabilities.
+## Features
 
-## 🚀 Quick Start (5 minutes)
+- **Real-time speech-to-text** processing with <3 second latency
+- **AI knowledge extraction** using OpenAI GPT-3.5-turbo
+- **Interactive graph visualization** with vis.js
+- **WebSocket communication** for live updates
+- **Speaker identification** and management
+- **Meeting controls** (start/stop/clear/export)
+- **Graph navigation** with zoom, pan, and fit controls
+
+## Quick Start
 
 ### Prerequisites
-- **Python 3.8+** (for audio processing)
-- **Node.js 16+** (for server and frontend)
-- **OpenAI API key** (for knowledge extraction)
-- **Microphone access**
 
-### 1. Clone & Install Dependencies
+- Node.js (v14+)
+- Python 3.8+
+- OpenAI API key
 
+### Installation
+
+1. Clone the repository:
 ```bash
-# Navigate to your MeetingNexus directory
+git clone <repository-url>
 cd ConvoNexus
+```
 
-# Install Node.js dependencies
+2. Install dependencies:
+```bash
+# Node.js dependencies
 npm install
 
-# Install Python dependencies
+# Python dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Configure Environment
-
+3. Set up environment variables:
 ```bash
-# Copy environment template
-cp .env.example .env
-
-# Edit .env and add your OpenAI API key
-# OPENAI_API_KEY=your_api_key_here
+# Create .env file with your OpenAI API key
+echo "OPENAI_API_KEY=your_api_key_here" > .env
 ```
 
 ### 3. Start the System
